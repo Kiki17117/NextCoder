@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>ホーム画面</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>ホーム画面</h1>
+
+    <canvas id="skillRadarChart" width="500" height="500"></canvas>
+
+  <script>
+    const ctx = document.getElementById('skillRadarChart').getContext('2d');
+    const skillRadarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['フロント', 'バックエンド', 'DB', 'Git', '競プロ'],
+        datasets: [{
+          label: '現在のスキル',
+          data: [70, 80, 60, 50, 40], // ← あとでここをJavaから受け取れるようにする
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+		responsive: false,
+        scales: {
+          r: {
+            min: 0,
+            max: 100,
+            ticks: {
+              stepSize: 20
+            }
+          }
+        }
+      }
+    });
+  </script>
+
+    <form th:action="@{/record}" method="get">
+    	<button type="submit">記録画面へ</button>
+    </form>
+</body>
+</html>
