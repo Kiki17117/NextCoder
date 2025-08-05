@@ -1,58 +1,49 @@
 package com.example.NextCoder.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.example.NextCoder.entity.UserEntity;
+import com.example.NextCoder.form.SignupForm;
+import com.example.NextCoder.repository.UserEntityRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
-import com.example.NextCoder.form.LoginForm;
-import com.example.NextCoder.service.LoginService;
-
-import lombok.RequiredArgsConstructor;
-
-/**
- * ログイン画面コントローラー
- */
 @Controller
-@RequiredArgsConstructor
 public class LoginController {
 
-	/** ログイン画面サービス*/
-	private final LoginService service;
+    @Autowired
+    private UserEntityRepository userregisterRepository;
 
-	/** PasswordEncoder */
-	private final PasswordEncoder passwordEncoder;
+    @GetMapping("/login")
+    public String loginPage() {
+        return "login";
+    }
 
-	/**
-	 * 初期表示
-	 * @param model
-	 * @return　ログイン画面
-	 */
-	@GetMapping("/login")
-	public String showLoginPage(Model model) {
-		model.addAttribute("loginForm",new LoginForm());
-		return "login";
-	}
+    @GetMapping("/signup")
+    public String registerPage(Model model) {
+        model.addAttribute("signupForm", new SignupForm()); // フォーム初期化
+        System.out.println("サインイン画面");
+        return "signup";
+    }
 
-	/**
-	 * ログイン
-	 * IDとパスの正誤判定をし、ホーム画面orエラーメッセージ
-	 * @param model
-	 * @param form　入力情報
-	 * @return　ホーム画面
-	 */
-	@PostMapping("/login")
-	public String login(Model model,LoginForm form) {
-		var userInfo = service.searchUserById(form.getUserID());
-		var encordedPassword = passwordEncoder.encode(form.getPassword());
-		var isCorrectUserAuth = userInfo.isPresent()
-				&& passwordEncoder.matches(form.getPassword(),userInfo.get().getPassword());
-		if(isCorrectUserAuth) {
-			return "redirect:/home";
-		} else {
-			model.addAttribute("errorMsg","ログインIDとパスワードの組み合わせが間違っています。");
-			return "login";
-		}
-	}
+    @PostMapping("/signup")  // GETとPOSTを同じパスに統一
+    public String register(@ModelAttribute SignupForm form, Model model) {
+        if (userregisterRepository.existsById(form.getUserId())) {
+            model.addAttribute("errorMsg", "このユーザーIDはすでに使用されています");
+            return "signup";  // エラーページはsignup.htmlに戻す
+        }
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setUserId(form.getUserId());  // フィールド名に合わせる（UserEntity側と合わせてください）
+        userEntity.setPassword(new BCryptPasswordEncoder().encode(form.getPassword()));
+
+        userregisterRepository.save(userEntity);
+
+        return "redirect:/login?registerSuccess";
+    }
 }

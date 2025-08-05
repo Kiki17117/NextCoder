@@ -12,7 +12,7 @@ import lombok.Data;
 @Entity
 @Table(name = "user_info")
 @Data
-public class UserInfo {
+public class UserEntity {
 
 	/** ユーザーID*/
 	@Id

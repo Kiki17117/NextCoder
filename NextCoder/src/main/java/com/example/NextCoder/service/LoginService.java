@@ -2,10 +2,14 @@ package com.example.NextCoder.service;
 
 import java.util.Optional;
 
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.example.NextCoder.entity.UserInfo;
-import com.example.NextCoder.repository.UserInfoRepository;
+import com.example.NextCoder.entity.UserEntity;
+import com.example.NextCoder.repository.UserEntityRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,16 +18,27 @@ import lombok.RequiredArgsConstructor;
  */
 @Service
 @RequiredArgsConstructor
-public class LoginService {
-	/** ユーザー情報テーブルDAO */
-	private final UserInfoRepository repository;
+public class LoginService implements UserDetailsService {
 
-	/**
-	 * ユーザー情報テーブルキー検索
-	 * @param userId ユーザーID
-	 * @return ユーザー情報テーブルの検索結果（1件）
-	 */
-	public Optional<UserInfo> searchUserById(String userId){
-		return repository.findById(userId);
-	}
+    private final UserEntityRepository repository;  // ユーザーデータのDBアクセス担当
+
+    @Override
+    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
+    	System.out.println("loadUserByUsername called with: " + userId);
+        // DBからユーザー情報を取ってくる
+        Optional<UserEntity> userOpt = repository.findById(userId);
+        if (userOpt.isEmpty()) {
+            // 見つからなかったら例外を投げて認証失敗を知らせる
+            throw new UsernameNotFoundException("ユーザーが見つかりません: " + userId);
+        }
+
+        UserEntity userEntity = userOpt.get();
+
+        // Spring Security のUserオブジェクトを作る（認証処理に使われる）
+        return User.withUsername(userEntity.getUserId())
+                   .password(userEntity.getPassword())  // DBのハッシュ化済みパスワードを設定
+                   .roles("USER")  // 権限（ロール）を付与
+                   .build();
+    }
 }
+
