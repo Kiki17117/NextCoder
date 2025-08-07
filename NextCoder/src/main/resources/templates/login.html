@@ -11,13 +11,13 @@
 	<span th:text="${errorMsg}"></span>
 	<form th:action="@{/login}" method="post">
 		<div>
-			<input type="text" class="form-control" placeholder="userid" name="username">
+			<input type="text" class="form-control" placeholder="username" name="username">
 		</div>
 		<div>
 			<input type="password" class="form-control" placeholder="password" aria-labeledby="passwordHelpBlock" name="password">
 		</div>
 		<div>
-			<input type="submit" class="btn btn-primary" value="ログイン">
+			<input type="submit" class="btn" style="background-color: #6f42c1; color: white;" value="ログイン">
 		</div>
 	</form>
 	<a th:href="@{/signup}">新規登録はこちら</a>

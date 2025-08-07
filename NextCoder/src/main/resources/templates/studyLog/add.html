@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>学習記録の追加</title>
+</head>
+<body>
+	<h1>学習記録の追加</h1>
+	<form th:action="@{/studyLog/add}" method="post" th:object="${studyLogForm}">
+		<label>スキル</label>
+		<div th:each="skill : ${skills}">
+			<input type="checkbox" th:value="${skill.id}" th:field="*{skillIds}" />
+			<span th:text="${skill.skillName}"></span>
+		</div>
+		<div>
+			<label>学習内容の詳細:</label>
+			<input type="text" th:field="*{description}" required />
+		</div>
+		<div>
+			<label>勉強時間:</label>
+			<input type="number" th:field="*{studyTimeMinutes}" required />
+		</div>
+		<div>
+			<input type="submit" value="送信" />
+		</div>
+	</form>
+</body>
+</html>

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.NextCoder.entity.UserEntity;
 
-public interface UserEntityRepository extends JpaRepository<UserEntity, String> {
-	Optional<UserEntity> findByUserId(String userId);
+public interface UserEntityRepository extends JpaRepository<UserEntity, Long> {
+	Optional<UserEntity> findByUsername(String username);
+	boolean existsByUsername(String username);
 }
