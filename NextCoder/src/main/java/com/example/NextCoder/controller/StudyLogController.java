@@ -1,19 +1,18 @@
 package com.example.NextCoder.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import com.example.NextCoder.entity.StudyLog;
 import com.example.NextCoder.form.StudyLogForm;
 import com.example.NextCoder.service.SkillService;
 import com.example.NextCoder.service.StudyLogService;
-import com.example.NextCoder.service.StudyLogSkillService;
+
+import jakarta.validation.Valid;
 
 @Controller
 public class StudyLogController {
@@ -21,9 +20,12 @@ public class StudyLogController {
 	@Autowired
 	private StudyLogService studyLogService;
 	@Autowired
-	private StudyLogSkillService studyLogSkillService;
-	@Autowired
 	private SkillService skillService;
+
+	@GetMapping("/studyLog/dashboard")
+		public String dashboard() {
+			return "studyLog/dashboard";
+		}
 
 	@GetMapping("/studyLog/add")
 	public String showLogForm(Model model) {
@@ -34,14 +36,20 @@ public class StudyLogController {
 
 
 	@PostMapping("/studyLog/add")
-	public String submitLog(@ModelAttribute("logForm") StudyLogForm studyLogForm) {
-		StudyLog savedStudyLog = studyLogService.save(studyLogForm);
+	public String submitLog(@Valid @ModelAttribute("studyLogForm") StudyLogForm studyLogForm,
+							BindingResult bindingResult,
+							Model model) {
 
-		List<Long> skillIds = studyLogForm.getSkillIds();
-		if(skillIds != null && !skillIds.isEmpty()) {
-			studyLogSkillService.addSkillsToStudyLog(savedStudyLog.getId(), skillIds);
+		if(bindingResult.hasErrors()) {
+			// エラーがあれば再度スキル一覧をセットしフォームを表示
+	        model.addAttribute("skills", skillService.getAllSkills());
+	        return "studyLog/add";
 		}
-		return "redirect:/studyLog/dashboard";
+
+		// バリデーションOkなら保存処理へ
+		studyLogService.saveWithSkills(studyLogForm);
+
+	    return "redirect:/studyLog/dashboard";
 	}
 
 }

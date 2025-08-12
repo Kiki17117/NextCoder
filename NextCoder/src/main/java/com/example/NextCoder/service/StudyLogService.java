@@ -1,5 +1,7 @@
 package com.example.NextCoder.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.example.NextCoder.entity.Skill;
@@ -22,29 +24,41 @@ public class StudyLogService {
 	private final SkillRepository skillRepository;
 	private final StudyLogSkillRepository studyLogSkillRepository;
 
+	/**
+	 * 学習記録と紐づくスキル情報を一括で保存するメソッド
+	 *
+	 * @param studyLogForm フォームから受け取った学習内容・勉強時間・スキルIDリストなどの情報
+	 * @return 保存したStudyLogエンティティ（DBに登録済みの学習記録）
+	 */
 	@Transactional
-	public StudyLog save(StudyLogForm studyLogForm) {
-		StudyLog studyLog = StudyLog.builder()
-				.description(studyLogForm.getDescription())
-				.studyTimeMinutes(studyLogForm.getStudyTimeMinutes())
-				.build();
-		StudyLog savedLog = studyLogRepository.save(studyLog);
+	public StudyLog saveWithSkills(StudyLogForm studyLogForm) {
+	    // StudyLog（学習記録）エンティティを作成し、DBに保存する
+	    StudyLog savedLog = studyLogRepository.save(
+	        StudyLog.builder()
+	            .description(studyLogForm.getDescription())        // 学習内容の詳細をセット
+	            .studyTimeMinutes(studyLogForm.getStudyTimeMinutes()) // 勉強時間（分）をセット
+	            .build()
+	    );
 
-		if(studyLogForm.getSkillIds() != null && !studyLogForm.getSkillIds().isEmpty()) {
-			for(Long skillId : studyLogForm.getSkillIds()) {
-				Skill skill = skillRepository.findById(skillId)
-					.orElseThrow(() -> new IllegalArgumentException("Skill not found: id=" +skillId));
-				StudyLogSkill studyLogSkill = StudyLogSkill.builder()
-					.id(new StudyLogSkillId(savedLog.getId(), skill.getId()))
-					.studyLog(savedLog)
-					.skill(skill)
-					.build();
+	    // スキルIDリストが空でなければ、対応するSkillエンティティを一括取得し、関連付ける
+	    if (studyLogForm.getSkillIds() != null && !studyLogForm.getSkillIds().isEmpty()) {
+	        // 選択されたスキルIDの一覧をまとめてDBから取得
+	        List<Skill> skills = skillRepository.findAllById(studyLogForm.getSkillIds());
 
-				studyLogSkillRepository.save(studyLogSkill);
-			}
-		}
-		return savedLog;
+	        // 取得したスキルごとにStudyLogSkill（学習記録とスキルの関連テーブル）を作成・保存
+	        for (Skill skill : skills) {
+	            studyLogSkillRepository.save(
+	                StudyLogSkill.builder()
+	                    .id(new StudyLogSkillId(savedLog.getId(), skill.getId())) // 複合キー（学習記録ID＋スキルID）を作成
+	                    .studyLog(savedLog)                                        // 学習記録側のリレーションをセット
+	                    .skill(skill)                                             // スキル側のリレーションをセット
+	                    .build()
+	            );
+	        }
+	    }
+
+	    // 保存済みの学習記録を呼び出し元に返す
+	    return savedLog;
 	}
-
-
 }
+

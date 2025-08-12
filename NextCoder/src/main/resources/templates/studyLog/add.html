@@ -9,20 +9,23 @@
 	<form th:action="@{/studyLog/add}" method="post" th:object="${studyLogForm}">
 		<label>スキル</label>
 		<div th:each="skill : ${skills}">
-			<input type="checkbox" th:value="${skill.id}" th:field="*{skillIds}" />
-			<span th:text="${skill.skillName}"></span>
+			<label style="display: block; cursor: pointer;">
+				<input type="checkbox" th:value="${skill.id}" th:field="*{skillIds}" />
+				<span th:text="${skill.skillName}"></span>
+			</label>
 		</div>
 		<div>
 			<label>学習内容の詳細:</label>
-			<input type="text" th:field="*{description}" required />
+			<textarea th:field="*{description}" required></textarea>
 		</div>
 		<div>
 			<label>勉強時間:</label>
-			<input type="number" th:field="*{studyTimeMinutes}" required />
+			<input type="number" th:field="*{studyTimeMinutes}" min="1" required />
 		</div>
 		<div>
 			<input type="submit" value="送信" />
 		</div>
+		<p th:if="${#fields.hasErrors('skillIds')}" th:errors="*{skillIds}" style="color: red;"></p>
 	</form>
 </body>
 </html>
